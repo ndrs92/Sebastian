@@ -1,95 +1,168 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Sebastian main executable.
+""" Sebastian is a configurable Butler meant to be sitting next to the door informing users what is inside. """
 
 """
+Copyright (C) 2016  Andrés Vieira Vázquez
 
-"""
-LICENSE DETAILS
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 __author__ = "Andrés Vieira"
 __copyright__ = "Copyright 2016, Andrés Vieira"
 __credits__ = ["Andrés Vieira", "Samuel Rodríguez Borines"]
-__license__ = "GPL"
+__license__ = "GNU GPLv3"
 __version__ = "v0.1 BETA"
 __maintainer__ = "Andrés Vieira"
 __email__ = "anvieiravazquez@gmail.com"
 __status__ = "Development"
 
-_webdir_ = "localhost"
-_filetowatch_ = "./currentstate.txt"
+_filetowatch_ = "./default_watch_file.txt"
+_debug_active_ = False
 
 import sys
 from os.path import expanduser
 from PySide import QtGui, QtCore, QtWebKit
 
-app = QtGui.QApplication(sys.argv)
-w = QtGui.QDialog()
-_web_view = QtWebKit.QWebView()
-
 def dprint(string):
-    print ">>>Debug: " + str(string)
+    ''' Prints a debug string '''
+    if _debug_active_:
+        print ">>>Debug: " + str(string)
+
+def on_file_change():
+    ''' Defines what happens when watched file changes. '''
+    with open(_filetowatch_, "rb") as f:
+        to_view = f.read()
+    try:
+        #Finds the first site:http://someweb.com/ and represents it in Sebastian.
+        to_view = to_view.split("site:")[1].split("\n")[0].replace(" ", "").rstrip()
+        dprint(to_view)
+    except Exception as e:
+        #Whatever happens just not try to refresh
+        return
+    global _web_view
+    _web_view.load(QtCore.QUrl(to_view))
 
 def on_start():
-    sebastian_window = QtGui.QDialog()
-    main_layout = QtGui.QHBoxLayout()
-    main_layout.setContentsMargins(0,0,0,0)
-    _web_view.load(QtCore.QUrl("http://www.google.es/"))
-    _web_view.page().mainFrame().setScrollBarPolicy(QtCore.Qt.Orientation.Vertical, QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-    main_layout.addWidget(_web_view)
-    sebastian_window.setWindowState(QtCore.Qt.WindowFullScreen)
-    sebastian_window.setLayout(main_layout)
-    sebastian_window.exec_()
+    ''' Sets up the QFileSystemWatcher and starts a
+    fullscreen window with the contents '''
+    #Cleans filesystemwatcher
+    for path in filewatcher.files():
+        filewatcher.removePath(path)
+    #Add new path to watch
+    filewatcher.addPath(_filetowatch_)
+    #Refresh for the first time
+    on_file_change()
+    #Show Sebastian fullscreen window
+    sebastian_window.show()
 
 def on_config():
-    file_path = QtGui.QFileDialog.getOpenFileName(w, "Select File to watch", expanduser("~"), "Text files (*.txt)")
+    ''' Lets the user select a file to watch '''
+    file_path, _ = QtGui.QFileDialog.getOpenFileName(w, "Select File to watch", expanduser("~"), "Text files (*.txt)")
     if len(file_path) > 2:
         #File selected
+        global _filetowatch_
         _filetowatch_ = file_path
     else:
         #File not selected, ignoring
         pass
 
 def on_about():
-    pass
+    about_window.show()
 
-def main():
-    """ Main function. """
 
-    QtCore.QTextCodec.setCodecForCStrings(QtCore.QTextCodec.codecForName('UTF-8'))
-    w.setFixedSize(420, 180)
-    w.setWindowFlags(QtCore.Qt.Dialog)
-    w.setWindowTitle('Sebastian Control Panel ' + str(__version__))
+
+''' Resources creation '''
+app = QtGui.QApplication(sys.argv)
+QtCore.QTextCodec.setCodecForCStrings(QtCore.QTextCodec.codecForName('UTF-8'))
+# region Main window definition
+w = QtGui.QDialog()
+w.setFixedSize(420, 180)
+w.setWindowFlags(QtCore.Qt.Dialog)
+w.setWindowTitle('Sebastian Control Panel ' + str(__version__))
+main_layout = QtGui.QVBoxLayout()
+main_groupbox = QtGui.QGroupBox("Sebastian Control Panel")
+gp_layout = QtGui.QVBoxLayout()
+first_row_layout = QtGui.QHBoxLayout()
+second_row_layout = QtGui.QHBoxLayout()
+
+start_button = QtGui.QPushButton("Start Sebastian")
+start_button.clicked.connect(on_start)
+config_button = QtGui.QPushButton("File to check")
+config_button.clicked.connect(on_config)
+logo = QtGui.QLabel("Sebastian " + __version__)
+about_button = QtGui.QPushButton("About this")
+about_button.clicked.connect(on_about)
+
+first_row_layout.addWidget(start_button)
+first_row_layout.addWidget(config_button)
+
+second_row_layout.addWidget(logo)
+second_row_layout.addWidget(about_button)
     
-    main_layout = QtGui.QVBoxLayout()
-    main_groupbox = QtGui.QGroupBox("Sebastian Control Panel")
-    gp_layout = QtGui.QVBoxLayout()
-    first_row_layout = QtGui.QHBoxLayout()
-    second_row_layout = QtGui.QHBoxLayout()
+gp_layout.addLayout(first_row_layout)
+gp_layout.addLayout(second_row_layout)
+main_groupbox.setLayout(gp_layout)
+main_layout.addWidget(main_groupbox)
+w.setLayout(main_layout)
+w.show()
+# endregion Main window definition
 
-    start_button = QtGui.QPushButton("Start Sebastian")
-    start_button.clicked.connect(on_start)
-    config_button = QtGui.QPushButton("File to check")
-    config_button.clicked.connect(on_config)
-    logo = QtGui.QLabel("Sebastian " + __version__)
-    about_button = QtGui.QPushButton("About this")
+# region Sebastian fullscreen window
+sebastian_window = QtGui.QDialog()
+main_layout = QtGui.QHBoxLayout()
+main_layout.setContentsMargins(0,0,0,0)
+_web_view = QtWebKit.QWebView()
+_web_view.load(QtCore.QUrl(""))
+_web_view.page().mainFrame().setScrollBarPolicy(QtCore.Qt.Orientation.Vertical, QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+filewatcher = QtCore.QFileSystemWatcher()
+filewatcher.fileChanged.connect(on_file_change)
+main_layout.addWidget(_web_view)
+sebastian_window.setWindowState(QtCore.Qt.WindowFullScreen)
+sebastian_window.setLayout(main_layout)
+# endregion Sebastian fullscreen window
 
-    first_row_layout.addWidget(start_button)
-    first_row_layout.addWidget(config_button)
+# region About window
+about_window = QtGui.QDialog()
+about_window.setFixedSize(420, 180)
+about_window.setWindowFlags(QtCore.Qt.Dialog)
+about_window.setWindowTitle('About Sebastian')
+about_window_layout = QtGui.QVBoxLayout()
+name_label = QtGui.QLabel("Software Name: Sebastian")
+version_label = QtGui.QLabel("Software Version: " + __version__)
+credits_label = QtGui.QLabel("Software Credits: " + ", ".join(__credits__))
+license_label = QtGui.QLabel("License: " + __license__)
+separator = QtGui.QFrame()
+separator.setFrameShape(QtGui.QFrame.HLine)
+separator.setFrameShadow(QtGui.QFrame.Sunken)
 
-    second_row_layout.addWidget(logo)
-    second_row_layout.addWidget(about_button)
-    
+button_layout = QtGui.QHBoxLayout()
+about_ok_button = QtGui.QPushButton("Cool")
+about_ok_button.clicked.connect(lambda : about_window.hide())
+button_layout.addStretch(1)
+button_layout.addWidget(about_ok_button)
 
-    gp_layout.addLayout(first_row_layout)
-    gp_layout.addLayout(second_row_layout)
-    main_groupbox.setLayout(gp_layout)
-    main_layout.addWidget(main_groupbox)
-    w.setLayout(main_layout)
-    w.show()
-    sys.exit(app.exec_())
+about_window_layout.addWidget(name_label)
+about_window_layout.addWidget(version_label)
+about_window_layout.addWidget(credits_label)
+about_window_layout.addWidget(license_label)
+about_window_layout.addWidget(separator)
+about_window_layout.addStretch(1)
+about_window_layout.addLayout(button_layout)
 
-if __name__ == '__main__':
-    main()
+about_window.setLayout(about_window_layout)
+# endregion About window
+
+#Execute
+sys.exit(app.exec_())
