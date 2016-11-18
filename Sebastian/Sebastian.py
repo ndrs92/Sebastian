@@ -28,7 +28,8 @@ __maintainer__ = "Andrés Vieira"
 __email__ = "anvieiravazquez@gmail.com"
 __status__ = "Development"
 
-_filetowatch_ = "./default_watch_file.txt"
+_defaultfiletowatch_ = "./default_watch_file.txt"
+_currentfiletowatch_ = ""
 _debug_active_ = False
 
 import sys
@@ -42,7 +43,9 @@ def dprint(string):
 
 def on_file_change():
     ''' Defines what happens when watched file changes. '''
-    with open(_filetowatch_, "rb") as f:
+    global _web_view, _currentfiletowatch_, _defaultfiletowatch_
+
+    with open(_currentfiletowatch_, "rb") as f:
         to_view = f.read()
     try:
         #Finds the first site:http://someweb.com/ and represents it in Sebastian.
@@ -51,17 +54,22 @@ def on_file_change():
     except Exception as e:
         #Whatever happens just not try to refresh
         return
-    global _web_view
     _web_view.load(QtCore.QUrl(to_view))
 
 def on_start():
     ''' Sets up the QFileSystemWatcher and starts a
     fullscreen window with the contents '''
+    global _currentfiletowatch_, _defaultfiletowatch_
+    
+    #User does not have selected a file
+    if _currentfiletowatch_ == "":
+        _currentfiletowatch_ = _defaultfiletowatch_
+
     #Cleans filesystemwatcher
     for path in filewatcher.files():
         filewatcher.removePath(path)
     #Add new path to watch
-    filewatcher.addPath(_filetowatch_)
+    filewatcher.addPath(_currentfiletowatch_)
     #Refresh for the first time
     on_file_change()
     #Show Sebastian fullscreen window
@@ -72,15 +80,14 @@ def on_config():
     file_path, _ = QtGui.QFileDialog.getOpenFileName(w, "Select File to watch", expanduser("~"), "Text files (*.txt)")
     if len(file_path) > 2:
         #File selected
-        global _filetowatch_
-        _filetowatch_ = file_path
+        global _currentfiletowatch_
+        _currentfiletowatch_ = file_path
     else:
         #File not selected, ignoring
         pass
 
 def on_about():
     about_window.show()
-
 
 
 ''' Resources creation '''
