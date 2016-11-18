@@ -18,6 +18,13 @@ Sebastian is fairly simple. Just open sebastian.py with a python interpreter, se
 
 > - Sebastian needs [PySide](https://pypi.python.org/pypi/PySide/) to work. Install it with pip (pip install PySide).
 
+How to use the sample web interface
+-------------
+The sample-web-interface directory is meant to be hosted in a webserver in the same computer as Sebastian is running. This way, when you want to change the contents of the Sebastian window you can access the ip/dn of your host to see the webpage. 
+
+In Sebastian you have to set the file to watch to "site-file.txt" (inside sample-web-interface), as it'll be changing over time.
+
+This is meant to provide a more out-of-the-box experience.
 
 Credits
 -------------
