@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>8639022a-13b1-4821-95a8-3ee5194d7cdf</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Sebastian.py</StartupFile>
+    <StartupFile>sebastian.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,7 +22,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Sebastian.py" />
+    <Compile Include="sebastian.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="default_watch_file.txt" />

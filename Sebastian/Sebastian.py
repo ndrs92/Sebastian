@@ -28,13 +28,16 @@ __maintainer__ = "Andrés Vieira"
 __email__ = "anvieiravazquez@gmail.com"
 __status__ = "Development"
 
+import sys
+import os
+from os.path import expanduser
+from PySide import QtGui, QtCore, QtWebKit
+
 _defaultfiletowatch_ = "./default_watch_file.txt"
 _currentfiletowatch_ = ""
 _debug_active_ = False
+_preferences_file_ = expanduser("~") + "/.sebastian.conf"
 
-import sys
-from os.path import expanduser
-from PySide import QtGui, QtCore, QtWebKit
 
 def dprint(string):
     ''' Prints a debug string '''
@@ -89,6 +92,13 @@ def on_config():
 def on_about():
     about_window.show()
 
+def on_show_on_start():
+    filetosave = open(_preferences_file_, "wb")
+    if show_on_start_chk.isChecked():
+        filetosave.write("run_on_start: true")
+    else:
+        filetosave.write("run_on_start: false")
+    filetosave.close()
 
 ''' Resources creation '''
 app = QtGui.QApplication(sys.argv)
@@ -108,14 +118,15 @@ start_button = QtGui.QPushButton("Start Sebastian")
 start_button.clicked.connect(on_start)
 config_button = QtGui.QPushButton("File to check")
 config_button.clicked.connect(on_config)
-logo = QtGui.QLabel("Sebastian " + __version__)
+show_on_start_chk = QtGui.QCheckBox("Run on startup")
+show_on_start_chk.stateChanged.connect(on_show_on_start)
 about_button = QtGui.QPushButton("About this")
 about_button.clicked.connect(on_about)
 
 first_row_layout.addWidget(start_button)
 first_row_layout.addWidget(config_button)
 
-second_row_layout.addWidget(logo)
+second_row_layout.addWidget(show_on_start_chk)
 second_row_layout.addWidget(about_button)
     
 gp_layout.addLayout(first_row_layout)
@@ -171,5 +182,15 @@ about_window_layout.addLayout(button_layout)
 about_window.setLayout(about_window_layout)
 # endregion About window
 
+#Watch if it has to show sebastian by default
+run_on_startup = False
+if(os.path.isfile(_preferences_file_)):
+    preferences = open(_preferences_file_, "rb").read()
+    run_on_startup = True if ("true" in preferences.split("run_on_start: ")[1].lower()) else False
+
 #Execute
+if run_on_startup:
+    show_on_start_chk.setChecked(True)
+    on_start()
+
 sys.exit(app.exec_())
