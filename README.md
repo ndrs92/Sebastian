@@ -12,10 +12,11 @@ You can use this software to show if your store is opened, and to refresh live t
 How to use
 -------------
 
-Sebastian is fairly simple. Just open sebastian.py with a python interpreter, select a file to watch and start sebastian. It will autorefresh whenever that file is changed.
+Sebastian is fairly simple. Just open `sebastian.py` with a python interpreter, select a file to watch and start sebastian. It will autorefresh whenever that file is changed.
+
+To show Sebastian as fullscreen at startup just check the `Run on Startup` checkbox
 
 > **Note:**
-
 > - Sebastian needs [PySide](https://pypi.python.org/pypi/PySide/) to work. Install it with pip (pip install PySide).
 
 How to use the sample web interface
