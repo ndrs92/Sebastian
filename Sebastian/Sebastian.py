@@ -37,6 +37,8 @@ _defaultfiletowatch_ = "./default_watch_file.txt"
 _currentfiletowatch_ = ""
 _debug_active_ = False
 _preferences_file_ = expanduser("~") + "/.sebastian.conf"
+_app_ = QtGui.QApplication(sys.argv)
+
 
 
 def dprint(string):
@@ -62,7 +64,7 @@ def on_file_change():
 def on_start():
     ''' Sets up the QFileSystemWatcher and starts a
     fullscreen window with the contents '''
-    global _currentfiletowatch_, _defaultfiletowatch_
+    global _currentfiletowatch_, _defaultfiletowatch_, _app_
     
     #User does not have selected a file
     if _currentfiletowatch_ == "":
@@ -76,6 +78,7 @@ def on_start():
     #Refresh for the first time
     on_file_change()
     #Show Sebastian fullscreen window
+    _app_.setOverrideCursor(QtCore.Qt.BlankCursor)
     sebastian_window.show()
 
 def on_config():
@@ -102,7 +105,6 @@ def on_show_on_start():
     filetosave.close()
 
 ''' Resources creation '''
-app = QtGui.QApplication(sys.argv)
 QtCore.QTextCodec.setCodecForCStrings(QtCore.QTextCodec.codecForName('UTF-8'))
 # region Main window definition
 w = QtGui.QDialog()
@@ -199,4 +201,4 @@ if run_on_startup:
     show_on_start_chk.setChecked(True)
     on_start()
 
-sys.exit(app.exec_())
+sys.exit(_app_.exec_())
