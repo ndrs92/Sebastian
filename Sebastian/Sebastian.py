@@ -95,7 +95,8 @@ def on_about():
 def on_show_on_start():
     filetosave = open(_preferences_file_, "wb")
     if show_on_start_chk.isChecked():
-        filetosave.write("run_on_start: true")
+        filetosave.write("run_on_start: true\n")
+        filetosave.write("file_to_watch: " + _currentfiletowatch_ + "\n")
     else:
         filetosave.write("run_on_start: false")
     filetosave.close()
@@ -184,9 +185,14 @@ about_window.setLayout(about_window_layout)
 
 #Watch if it has to show sebastian by default
 run_on_startup = False
-if(os.path.isfile(_preferences_file_)):
-    preferences = open(_preferences_file_, "rb").read()
-    run_on_startup = True if ("true" in preferences.split("run_on_start: ")[1].lower()) else False
+filetowatch = ""
+try:
+    if(os.path.isfile(_preferences_file_)):
+        preferences = open(_preferences_file_, "rb").read()
+        run_on_startup = True if ("true" in preferences.split("run_on_start: ")[1].lower()) else False
+        _currentfiletowatch_ = preferences.split("file_to_watch: ")[1].split("\n")[0]
+except Exception as e:
+    print e
 
 #Execute
 if run_on_startup:
